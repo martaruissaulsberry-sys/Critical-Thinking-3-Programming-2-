@@ -1,0 +1,110 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
+
+public class UserInterfaceApp extends JFrame {
+    private JTextArea textArea;
+    private JPanel mainPanel;
+    private Color randomGreenHue;
+
+    public UserInterfaceApp() {
+        setTitle("User Interface Application");
+        setSize(500, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        Random rand = new Random();
+        int r = rand.nextInt(80);
+        int g = 150 + rand.nextInt(106);
+        int b = rand.nextInt(80);
+        randomGreenHue = new Color(r, g, b);
+
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+
+        textArea = new JTextArea();
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        add(mainPanel);
+
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("Menu");
+
+        JMenuItem itemDateTime = new JMenuItem("1. Show Date and Time");
+        itemDateTime.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                LocalDateTime now = LocalDateTime.now();
+                textArea.append("Current Date & Time: " + dtf.format(now) + "\n");
+            }
+        });
+
+        JMenuItem itemWriteLog = new JMenuItem("2. Save to log.txt");
+        itemWriteLog.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try (PrintWriter writer = new PrintWriter(new FileWriter("log.txt", true))) {
+                    writer.println(textArea.getText());
+                    JOptionPane.showMessageDialog(UserInterfaceApp.this,
+                            "Contents successfully saved to log.txt!",
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(UserInterfaceApp.this,
+                            "Error writing to file: " + ex.getMessage(),
+                            "File Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        String hexColor = String.format("#%02X%02X%02X", randomGreenHue.getRed(), randomGreenHue.getGreen(), randomGreenHue.getBlue());
+        JMenuItem itemChangeColor = new JMenuItem("3. Change Background to Green Hue (" + hexColor + ")");
+        itemChangeColor.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainPanel.setBackground(randomGreenHue);
+                textArea.setBackground(randomGreenHue);
+                mainPanel.repaint();
+            }
+        });
+
+        JMenuItem itemExit = new JMenuItem("4. Exit");
+        itemExit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        menu.add(itemDateTime);
+        menu.add(itemWriteLog);
+        menu.add(itemChangeColor);
+        menu.addSeparator();
+        menu.add(itemExit);
+
+        menuBar.add(menu);
+        setJMenuBar(menuBar);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new UserInterfaceApp().setVisible(true);
+            }
+        });
+    }
+}
